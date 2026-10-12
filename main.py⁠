@@ -1,0 +1,67 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from contextlib import asynccontextmanager
+import os
+import shutil
+
+from db import Database
+from task_manager import TaskManager
+from worker import BackgroundWorker
+
+DB_FILE = "tasks.db"
+db = Database(DB_FILE)
+db.init_db("schema.sql")
+tm = TaskManager(db)
+worker = BackgroundWorker(tm)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    worker.start()
+    yield
+    await worker.stop()
+
+app = FastAPI(title="Autonomous Orchestrator", lifespan=lifespan)
+
+if not os.path.exists("static"):
+    os.makedirs("static")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+class CreateTaskReq(BaseModel):
+    title: str
+    description: str = ""
+
+@app.get("/", response_class=HTMLResponse)
+def dashboard():
+    with open("static/index.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/api/tasks")
+def list_tasks():
+    with db.get_connection() as conn:
+        cur = conn.execute("SELECT * FROM tasks ORDER BY created_at DESC")
+        return {"tasks": [dict(row) for row in cur.fetchall()]}
+
+@app.post("/api/tasks")
+def create_task(req: CreateTaskReq):
+    task = tm.create_task(req.title, req.description)
+    return {"status": "ok", "task": task}
+
+@app.get("/api/worker/status")
+def worker_status():
+    return {"is_running": worker.is_running}
+
+@app.post("/api/worker/toggle")
+async def toggle_worker():
+    if worker.is_running: await worker.stop()
+    else: worker.start()
+    return {"is_running": worker.is_running}
+
+@app.get("/api/backup/export")
+def export_backup():
+    backup_path = "/tmp/backup.db"
+    with db.get_connection() as conn:
+        conn.execute(f"VACUUM INTO '{backup_path}'")
+    return FileResponse(backup_path, filename="tasks_backup.db")
