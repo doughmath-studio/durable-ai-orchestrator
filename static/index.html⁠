@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>AI Orchestrator</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #0f172a; color: #fff; padding: 16px; margin: 0; }
+        .card { background: #1e293b; padding: 16px; border-radius: 12px; margin-bottom: 12px; }
+        .btn { background: #38bdf8; color: #000; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; }
+        input, textarea { width: 100%; padding: 10px; margin: 6px 0; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 6px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <h1>AI Orchestrator 24/7</h1>
+    <div class="card">
+        <h3>Новая задача</h3>
+        <input type="text" id="title" placeholder="Название">
+        <textarea id="desc" placeholder="Описание"></textarea>
+        <button class="btn" onclick="createTask()">Создать</button>
+    </div>
+    <div class="card">
+        <h3>Задачи</h3>
+        <div id="list">Загрузка...</div>
+    </div>
+    <script>
+        async function load() {
+            const res = await fetch('/api/tasks');
+            const data = await res.json();
+            document.getElementById('list').innerHTML = data.tasks.map(t => 
+                `<div style="border-bottom:1px solid #334155; padding:8px 0;"><b>${t.title}</b> [${t.status}]</div>`
+            ).join('') || 'Нет задач';
+        }
+        async function createTask() {
+            await fetch('/api/tasks', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({title: document.getElementById('title').value, description: document.getElementById('desc').value})
+            });
+            load();
+        }
+        load();
+    </script>
+</body>
+</html>
