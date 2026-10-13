@@ -1,0 +1,22 @@
+# Временная проверка: как Groq отвечает на разные User-Agent (без ключа). Будет удалена.
+name: diag-groq
+on:
+  push:
+    branches: [diag-groq-ua]
+jobs:
+  ua:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python3 - <<'PY'
+          import urllib.request, urllib.error, json
+          body = json.dumps({"model": "openai/gpt-oss-20b", "messages": [{"role": "user", "content": "hi"}]}).encode()
+          for ua in (None, "ai-orchestrator/1.0"):
+              h = {"Authorization": "Bearer fake", "Content-Type": "application/json"}
+              if ua: h["User-Agent"] = ua
+              req = urllib.request.Request("https://api.groq.com/openai/v1/chat/completions", data=body, headers=h, method="POST")
+              try:
+                  r = urllib.request.urlopen(req, timeout=20); print(ua, r.status)
+              except urllib.error.HTTPError as e:
+                  print("UA=", ua or "Python-urllib (default)", "->", e.code, e.read()[:200])
+          PY
