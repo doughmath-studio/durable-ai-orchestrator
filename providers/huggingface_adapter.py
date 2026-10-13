@@ -6,9 +6,9 @@ from providers.base import BaseProviderAdapter
 from budget_guard import BudgetGuard
 
 class HuggingFaceAdapter(BaseProviderAdapter):
-    def __init__(self, api_key: str = None, model: str = "Qwen/Qwen2.5-72B-Instruct"):
+    def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or os.getenv("HF_API_KEY", "")
-        self.model = model
+        self.model = model or os.getenv("HF_MODEL", "Qwen/Qwen2.5-72B-Instruct")
         self.endpoint = "https://router.huggingface.co/v1/chat/completions"
         self.budget_guard = BudgetGuard(max_rpm=10, max_rpd=500)
 

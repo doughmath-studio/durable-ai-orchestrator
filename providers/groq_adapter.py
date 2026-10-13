@@ -7,9 +7,10 @@ from providers.base import BaseProviderAdapter
 from budget_guard import BudgetGuard
 
 class GroqProviderAdapter(BaseProviderAdapter):
-    def __init__(self, api_key: str = None, model: str = "llama-3.1-8b-instant"):
+    def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or os.getenv("GROQ_API_KEY", "")
-        self.model = model
+        # llama-3.1-8b-instant Groq отключил 16.08.2026; замена по их списку — openai/gpt-oss-20b
+        self.model = model or os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
         self.endpoint = "https://api.groq.com/openai/v1/chat/completions"
         self.budget_guard = BudgetGuard(max_rpm=14, max_rpd=1000)
 
