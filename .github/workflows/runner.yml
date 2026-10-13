@@ -1,0 +1,88 @@
+# Такт системы: Issues владельца -> задачи -> GitHub Models -> ответ комментарием.
+# Запускается сам: при новом Issue и каждые 15 минут. Бесплатно для открытого репозитория.
+# База (SQLite) хранится в ветке taskcore-state: каждый такт берёт её и сохраняет обратно.
+name: runner
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  issues:
+    types: [opened, reopened]
+  workflow_dispatch:
+
+# Такты никогда не идут одновременно: одна база — один исполнитель.
+concurrency:
+  group: taskcore-runner
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  models: read
+
+jobs:
+  tick:
+    if: github.event_name != 'issues' || github.event.issue.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Load state
+        run: |
+          mkdir -p data
+          set +e
+          git ls-remote --exit-code --heads origin taskcore-state > /dev/null
+          rc=$?
+          set -e
+          if [ "$rc" = "0" ]; then
+            git fetch --depth 1 origin taskcore-state
+            git show FETCH_HEAD:taskcore.db > data/taskcore.db
+            echo "база загружена: $(stat -c %s data/taskcore.db) байт"
+          elif [ "$rc" = "2" ]; then
+            echo "ветки taskcore-state ещё нет: первая база будет создана"
+          else
+            echo "не удалось проверить ветку taskcore-state (код $rc), такт отменён"
+            exit 1
+          fi
+
+      - name: Tick
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TASKCORE_DB: data/taskcore.db
+          TASKCORE_ALLOWED_AUTHORS: ${{ github.repository_owner }}
+        run: python -m taskcore tick
+
+      - name: Save state
+        if: always()
+        run: |
+          [ -f data/taskcore.db ] || { echo "базы нет, сохранять нечего"; exit 0; }
+          git config --global user.name "taskcore-bot"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          set +e
+          git ls-remote --exit-code --heads origin taskcore-state > /dev/null
+          rc=$?
+          set -e
+          state="$RUNNER_TEMP/state"
+          if [ "$rc" = "0" ]; then
+            git fetch --depth 1 origin taskcore-state
+            git worktree add -B taskcore-state "$state" FETCH_HEAD
+          elif [ "$rc" = "2" ]; then
+            git worktree add --detach "$state"
+            git -C "$state" checkout --orphan taskcore-state
+            git -C "$state" rm -rfq .
+          else
+            echo "не удалось проверить ветку taskcore-state (код $rc)"
+            exit 1
+          fi
+          cp data/taskcore.db "$state/taskcore.db"
+          git -C "$state" add taskcore.db
+          if git -C "$state" diff --cached --quiet; then
+            echo "база не изменилась"
+            exit 0
+          fi
+          git -C "$state" commit -q -m "state: run ${{ github.run_id }}"
+          git -C "$state" push origin taskcore-state
