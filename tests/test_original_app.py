@@ -98,3 +98,25 @@ def test_groq_uses_a_model_that_is_still_available(monkeypatch):
     assert GroqProviderAdapter(api_key="x").model == "openai/gpt-oss-20b"
     monkeypatch.setenv("GROQ_MODEL", "other")
     assert GroqProviderAdapter(api_key="x").model == "other"
+
+
+def test_providers_send_user_agent_and_show_error_reason(monkeypatch):
+    import io
+    import urllib.error
+    import urllib.request
+    from providers.groq_adapter import GroqProviderAdapter
+    from providers.huggingface_adapter import HuggingFaceAdapter
+
+    seen = []
+
+    def fake_urlopen(req, timeout=None):
+        seen.append(req.get_header("User-agent"))
+        raise urllib.error.HTTPError(req.full_url, 403, "Forbidden", {},
+                                     io.BytesIO(b'{"error":"access denied"}'))
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    for adapter in (GroqProviderAdapter(api_key="k"), HuggingFaceAdapter(api_key="k")):
+        with pytest.raises(RuntimeError) as err:
+            adapter.execute_task("привет", {})
+        assert "access denied" in str(err.value)
+    assert seen == ["ai-orchestrator/1.0", "ai-orchestrator/1.0"]

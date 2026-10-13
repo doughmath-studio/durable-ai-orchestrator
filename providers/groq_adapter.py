@@ -26,7 +26,9 @@ class GroqProviderAdapter(BaseProviderAdapter):
             raise ValueError("API-ключ Groq не настроен.")
 
         self.budget_guard.check_and_claim()
-        headers = {"Authorization": f"Bearer {self.api_key.strip()}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {self.api_key.strip()}", "Content-Type": "application/json",
+                   # без своего User-Agent Cloudflare может отвечать 403 на стандартный Python-urllib
+                   "User-Agent": "ai-orchestrator/1.0"}
         payload = {
             "model": self.model,
             "messages": [
@@ -41,5 +43,8 @@ class GroqProviderAdapter(BaseProviderAdapter):
             with urllib.request.urlopen(req, timeout=30) as response:
                 result = json.loads(response.read().decode('utf-8'))
                 return result["choices"][0]["message"]["content"]
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "replace")[:300]
+            raise RuntimeError(f"Groq API Error: {str(e)} {detail}")
         except Exception as e:
             raise RuntimeError(f"Groq API Error: {str(e)}")
