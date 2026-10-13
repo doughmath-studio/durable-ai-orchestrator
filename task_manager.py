@@ -78,6 +78,16 @@ class TaskManager:
                 conn.execute("UPDATE tasks SET attempt_count = ?, status = 'RETRY_WAIT', available_at = ?, error_summary = ?, updated_at = ? WHERE id = ?", (new_attempts, next_available, str(error), now, task_id))
             conn.commit()
 
+    def recover_interrupted(self) -> int:
+        """После перезапуска (например, сервер уснул) задачи в RUNNING никто не доделает.
+        Возвращаем их в очередь, попытка засчитывается как неудачная."""
+        now = self._now()
+        with self.db.get_connection() as conn:
+            rows = conn.execute("SELECT id FROM tasks WHERE status = 'RUNNING'").fetchall()
+        for row in rows:
+            self.record_attempt_failure(row["id"], RuntimeError("timeout: процесс перезапущен во время выполнения"))
+        return len(rows)
+
     def get_next_ready_task(self) -> Optional[Task]:
         now = self._now()
         with self.db.get_connection() as conn:
