@@ -26,7 +26,7 @@ class ContextHandoverManager:
         return HandoverPackage(
             project_id="autonomous_multi_llm_system",
             task_id=task_id,
-            task_goal=title,
+            task_goal=f"{title}\n\n{description}".strip(),
             acceptance_criteria=["Выполнить без ошибок"],
             exact_next_action=exact_next_action or f"Выполнить {title}"
         )

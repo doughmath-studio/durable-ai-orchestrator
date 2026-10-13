@@ -38,6 +38,7 @@ class BackgroundWorker:
 
     async def _run_loop(self):
         while self.is_running:
+            task = None
             try:
                 task = self.tm.get_next_ready_task()
                 if task:

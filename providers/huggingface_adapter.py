@@ -9,7 +9,7 @@ class HuggingFaceAdapter(BaseProviderAdapter):
     def __init__(self, api_key: str = None, model: str = "Qwen/Qwen2.5-72B-Instruct"):
         self.api_key = api_key or os.getenv("HF_API_KEY", "")
         self.model = model
-        self.endpoint = f"https://api-inference.huggingface.co/models/{self.model}/v1/chat/completions"
+        self.endpoint = "https://router.huggingface.co/v1/chat/completions"
         self.budget_guard = BudgetGuard(max_rpm=10, max_rpd=500)
 
     @property

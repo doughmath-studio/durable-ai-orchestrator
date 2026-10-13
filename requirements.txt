@@ -1,1 +1,3 @@
-# Durable Task Core не требует внешних зависимостей.
+# Веб-приложение (main.py) для Render. Ядро taskcore/ внешних зависимостей не требует.
+fastapi
+uvicorn

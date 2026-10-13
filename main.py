@@ -23,6 +23,7 @@ DB_FILE = "tasks.db"
 db = Database(DB_FILE)
 db.init_db("schema.sql")
 tm = TaskManager(db)
+tm.recover_interrupted()
 worker = BackgroundWorker(tm)
 
 @asynccontextmanager
@@ -71,6 +72,8 @@ async def toggle_worker():
 @app.get("/api/backup/export")
 def export_backup():
     backup_path = "/tmp/backup.db"
+    if os.path.exists(backup_path):  # VACUUM INTO не перезаписывает файл: вторая выгрузка падала
+        os.remove(backup_path)
     with db.get_connection() as conn:
         conn.execute(f"VACUUM INTO '{backup_path}'")
     return FileResponse(backup_path, filename="tasks_backup.db")
