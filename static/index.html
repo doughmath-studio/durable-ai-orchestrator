@@ -24,13 +24,21 @@
         <div id="list">Загрузка...</div>
     </div>
     <script>
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
         async function load() {
             const res = await fetch('/api/tasks');
             const data = await res.json();
-            document.getElementById('list').innerHTML = data.tasks.map(t => 
-                `<div style="border-bottom:1px solid #334155; padding:8px 0;"><b>${t.title}</b> [${t.status}]</div>`
-            ).join('') || 'Нет задач';
+            document.getElementById('list').innerHTML = data.tasks.map(t => {
+                let extra = '';
+                if (t.result_summary) extra += `<div style="white-space:pre-wrap; margin-top:6px;">${esc(t.result_summary)}</div>`;
+                if (t.error_summary && t.status !== 'COMPLETED')
+                    extra += `<div style="white-space:pre-wrap; margin-top:6px; color:#fca5a5;">Ошибка: ${esc(t.error_summary)}</div>`;
+                return `<div style="border-bottom:1px solid #334155; padding:8px 0;"><b>${esc(t.title)}</b> [${esc(t.status)}]${extra}</div>`;
+            }).join('') || 'Нет задач';
         }
+        setInterval(load, 5000);
         async function createTask() {
             await fetch('/api/tasks', {
                 method: 'POST',

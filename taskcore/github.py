@@ -11,7 +11,7 @@ from .errors import NeedsHumanError, PermanentError, TransientError
 
 API_URL = "https://api.github.com"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "openai/gpt-oss-120b"  # llama-3.3-70b-versatile отключён Groq 16.08.2026
 HF_URL = "https://router.huggingface.co/v1/chat/completions"
 HF_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
 SYSTEM_PROMPT = ("Ты помощник в автономной системе задач. Отвечай на языке задачи, "

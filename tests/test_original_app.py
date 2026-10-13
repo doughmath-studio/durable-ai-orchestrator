@@ -84,3 +84,17 @@ def test_web_api_and_dashboard(tmp_path, monkeypatch):
         assert titles == ["Проверка"]
         assert c.get("/api/worker/status").json()["is_running"] is True
         assert c.get("/api/backup/export").status_code == 200
+
+
+def test_dashboard_shows_answer_and_error():
+    html = open(os.path.join(ROOT, "static", "index.html"), encoding="utf-8").read()
+    assert "result_summary" in html and "error_summary" in html
+
+
+def test_groq_uses_a_model_that_is_still_available(monkeypatch):
+    monkeypatch.delenv("GROQ_MODEL", raising=False)
+    from providers.groq_adapter import GroqProviderAdapter
+    # llama-3.1-8b-instant отключён Groq 16.08.2026
+    assert GroqProviderAdapter(api_key="x").model == "openai/gpt-oss-20b"
+    monkeypatch.setenv("GROQ_MODEL", "other")
+    assert GroqProviderAdapter(api_key="x").model == "other"
