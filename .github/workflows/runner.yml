@@ -49,6 +49,11 @@ jobs:
             exit 1
           fi
 
+      - name: Probe models (temporary)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python probe_models.py
+
       - name: Tick
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
