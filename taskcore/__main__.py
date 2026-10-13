@@ -62,6 +62,30 @@ def demo(db_path=None, quiet=False):
     return ok
 
 
+def tick_command():
+    """Такт системы. Нужны GITHUB_TOKEN и GITHUB_REPOSITORY (в Actions они есть сами)."""
+    from .github import DEFAULT_MODEL, GitHubClient, ModelsClient
+    from .runner import tick
+    token = os.environ.get("GITHUB_TOKEN")
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not token or not repo:
+        print("нужны переменные GITHUB_TOKEN и GITHUB_REPOSITORY", file=sys.stderr)
+        return 2
+    authors = [a.strip() for a in os.environ.get("TASKCORE_ALLOWED_AUTHORS", repo.split("/")[0]).split(",")
+               if a.strip()]
+    core = _core()
+    try:
+        report = tick(core, GitHubClient(token, repo),
+                      ModelsClient(token, os.environ.get("TASKCORE_MODEL", DEFAULT_MODEL)).ask,
+                      authors)
+        _print(report)
+    finally:
+        # Сливаем WAL в основной файл: сохраняется один файл базы.
+        core.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        core.close()
+    return 0
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="python -m taskcore", description="Durable Task Core")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -89,12 +113,15 @@ def main(argv=None):
     h = sub.add_parser("handoff", help="пакет передачи задачи другому ИИ")
     h.add_argument("id", type=int)
     sub.add_parser("demo", help="демонстрация на временной базе")
+    sub.add_parser("tick", help="один такт: Issues -> задачи -> нейросеть -> ответы (для GitHub Actions)")
     args = p.parse_args(argv)
 
     if args.cmd == "demo":
         ok = demo()
         print("DEMO OK" if ok else "DEMO FAILED")
         return 0 if ok else 1
+    if args.cmd == "tick":
+        return tick_command()
     core = _core()
     if args.cmd == "init":
         print(f"база готова: {core.db.path}, версия схемы {core.db.schema_version}")
