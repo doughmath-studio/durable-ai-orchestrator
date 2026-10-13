@@ -64,7 +64,7 @@ def demo(db_path=None, quiet=False):
 
 def tick_command():
     """Такт системы. Нужны GITHUB_TOKEN и GITHUB_REPOSITORY (в Actions они есть сами)."""
-    from .github import DEFAULT_MODEL, GitHubClient, ModelsClient
+    from .github import GitHubClient, Router, clients_from_env
     from .runner import tick
     token = os.environ.get("GITHUB_TOKEN")
     repo = os.environ.get("GITHUB_REPOSITORY")
@@ -75,9 +75,9 @@ def tick_command():
                if a.strip()]
     core = _core()
     try:
+        clients = clients_from_env(os.environ)
         report = tick(core, GitHubClient(token, repo),
-                      ModelsClient(token, os.environ.get("TASKCORE_MODEL", DEFAULT_MODEL)).ask,
-                      authors)
+                      Router(clients).ask if clients else None, authors)
         _print(report)
     finally:
         # Сливаем WAL в основной файл: сохраняется один файл базы.
