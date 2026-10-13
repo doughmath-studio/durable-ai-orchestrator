@@ -55,6 +55,41 @@ def sync_inbox(core, gh, allowed_authors):
     return created
 
 
+RETRY_WORDS = ("повтор", "retry")
+
+
+def sync_retries(core, gh, allowed_authors):
+    """Комментарий владельца «повтори» в открытом Issue перезапускает FAILED/BLOCKED задачу.
+
+    Каждый комментарий срабатывает один раз (event_id = id комментария).
+    """
+    retried = []
+    open_numbers = {i["number"] for i in gh.open_issues()}
+    for status in ("FAILED", "BLOCKED"):
+        for task in core.list_tasks(status):
+            number = issue_number(task)
+            if number is None or number not in open_numbers:
+                continue
+            for c in gh.comments(number):
+                if c.get("user", {}).get("login") not in allowed_authors:
+                    continue
+                if "<!-- taskcore:" in (c.get("body") or ""):
+                    continue
+                if not any(w in (c.get("body") or "").lower() for w in RETRY_WORDS):
+                    continue
+                if not core.log_event("github_retry_request", task["id"],
+                                      {"issue": number, "comment_id": c.get("id")},
+                                      event_id=f"gh-retry:{c.get('id')}"):
+                    continue  # этот комментарий уже обработан
+                if status == "FAILED":
+                    core.restart_failed(task["id"], "повтор по комментарию в Issue")
+                else:
+                    core.resume(task["id"], "возобновлено по комментарию в Issue")
+                retried.append(task["id"])
+                break
+    return retried
+
+
 def _report_text(core, task):
     if task["status"] == "COMPLETED":
         out = None
@@ -102,7 +137,14 @@ def tick(core, gh, ask, allowed_authors, *, max_steps=20):
     """Один такт. Возвращает отчёт для журнала GitHub Actions."""
     report = {"recovered": core.recover(force=True)}
     report["new_tasks"] = sync_inbox(core, gh, set(allowed_authors))
-    report["steps"] = core.run_until_idle(make_executor(ask), answer_verifier, max_steps=max_steps)
+    report["retried"] = sync_retries(core, gh, set(allowed_authors))
+    if ask is None:
+        # Нет ни одного ключа: задачи ждут и попытки не тратят.
+        report["steps"] = []
+        report["waiting"] = "нет ключа нейросети (секрет GROQ_API_KEY или HF_API_KEY)"
+    else:
+        report["steps"] = core.run_until_idle(make_executor(ask), answer_verifier,
+                                              max_steps=max_steps)
     report["errors"] = [
         {"task_id": s["task_id"], "error": core.attempts(s["task_id"])[-1]["error"]}
         for s in report["steps"] if s.get("action") == "failed"]
