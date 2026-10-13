@@ -103,6 +103,9 @@ def tick(core, gh, ask, allowed_authors, *, max_steps=20):
     report = {"recovered": core.recover(force=True)}
     report["new_tasks"] = sync_inbox(core, gh, set(allowed_authors))
     report["steps"] = core.run_until_idle(make_executor(ask), answer_verifier, max_steps=max_steps)
+    report["errors"] = [
+        {"task_id": s["task_id"], "error": core.attempts(s["task_id"])[-1]["error"]}
+        for s in report["steps"] if s.get("action") == "failed"]
     report["reported"] = sync_outbox(core, gh)
     report["stats"] = core.stats()
     return report

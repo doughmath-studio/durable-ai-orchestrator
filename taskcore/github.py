@@ -21,6 +21,9 @@ def urllib_transport(method, url, headers, body, timeout):
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
+            if resp.geturl() != url:
+                # urllib превращает POST при переадресации в GET без тела — это ошибка адреса.
+                raise PermanentError(f"запрос переадресован на {resp.geturl()}")
             return resp.status, resp.read()
     except urllib.error.HTTPError as e:
         return e.code, e.read()
@@ -104,5 +107,6 @@ class ModelsClient:
         try:
             answer = json.loads(data)["choices"][0]["message"]["content"]
         except (ValueError, KeyError, IndexError, TypeError) as e:
-            raise TransientError(f"GitHub Models: непонятный ответ: {e}") from e
+            snippet = data.decode("utf-8", "replace")[:300] if data else "(пусто)"
+            raise TransientError(f"GitHub Models: непонятный ответ (код {status}): {snippet}") from e
         return (answer or "").strip()
