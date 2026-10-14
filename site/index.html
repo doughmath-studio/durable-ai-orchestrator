@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ИИ-Автопилот — контент и аналитика для бизнеса 24/7</title>
+<meta name="description" content="Автономный ИИ пишет контент-планы, посты и SEO-статьи, следит за конкурентами и присылает отчёты в Telegram.">
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --text: #1b1d21; --muted: #5d636e;
+    --line: #e3e4e8; --accent: #3b5bdb; --accent-text: #ffffff; --soft: #eef2ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121317; --surface: #1b1d23; --text: #eceef2; --muted: #a2a8b4;
+      --line: #2c2f38; --accent: #7c95ff; --accent-text: #0f1220; --soft: #1f2540;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 56px 0 40px; }
+  .tag { display: inline-block; font-size: 13px; color: var(--accent); background: var(--soft);
+         padding: 4px 10px; border-radius: 999px; margin-bottom: 16px; }
+  h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.02em; }
+  h2 { font-size: 26px; margin: 0 0 20px; letter-spacing: -0.01em; }
+  h3 { font-size: 19px; margin: 0 0 8px; }
+  p.lead { font-size: 19px; color: var(--muted); max-width: 640px; margin: 0 0 28px; }
+  .btn { display: inline-block; background: var(--accent); color: var(--accent-text); text-decoration: none;
+         font-weight: 600; padding: 13px 22px; border-radius: 10px; }
+  .btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); margin-left: 8px; }
+  section { padding: 40px 0; border-top: 1px solid var(--line); }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+  .card.featured { border: 2px solid var(--accent); }
+  .price { font-size: 32px; font-weight: 700; margin: 6px 0 2px; }
+  .price small { font-size: 15px; font-weight: 400; color: var(--muted); }
+  .who { color: var(--muted); font-size: 15px; margin: 0 0 12px; }
+  ul { padding-left: 20px; margin: 10px 0 0; }
+  li { margin: 4px 0; }
+  ol.steps { counter-reset: s; list-style: none; padding: 0; display: grid; gap: 12px;
+             grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
+  ol.steps li { counter-increment: s; background: var(--surface); border: 1px solid var(--line);
+                border-radius: 14px; padding: 18px; margin: 0; }
+  ol.steps li::before { content: counter(s); display: block; font-weight: 700; color: var(--accent);
+                        font-size: 22px; margin-bottom: 6px; }
+  .sample { white-space: pre-wrap; font-size: 15px; background: var(--soft); border-radius: 10px;
+            padding: 14px; margin-top: 10px; }
+  .note { font-size: 14px; color: var(--muted); }
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+            padding: 14px 18px; margin-bottom: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+  @media (max-width: 480px) { .btn.ghost { margin: 10px 0 0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="tag">Работает круглосуточно</span>
+  <h1>ИИ-автопилот для контента и аналитики вашего бизнеса</h1>
+  <p class="lead">Поставьте задачу один раз — система сама пишет контент-план, посты и SEO-статьи,
+    следит за конкурентами и присылает готовый результат вам в Telegram.</p>
+  <a class="btn" href="#contact">Оставить заявку</a>
+  <a class="btn ghost" href="#prices">Тарифы</a>
+</header>
+
+<section>
+  <h2>Как это работает</h2>
+  <ol class="steps">
+    <li><strong>Вы описываете задачу.</strong> Ниша, тон, площадки, как часто нужен результат.</li>
+    <li><strong>ИИ делит её на шаги.</strong> План, черновики, проверка — каждый шаг сохраняется.</li>
+    <li><strong>Несколько нейросетей работают по очереди.</strong> Если одна недоступна, задачу продолжает другая.</li>
+    <li><strong>Результат приходит вам.</strong> В Telegram или в личный кабинет, по расписанию.</li>
+  </ol>
+</section>
+
+<section id="prices">
+  <h2>Тарифы</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Контент-автопилот</h3>
+      <p class="who">Малый бизнес, блогеры, Telegram-каналы</p>
+      <div class="price">$29 <small>/ месяц</small></div>
+      <ul>
+        <li>Контент-план на месяц вперёд</li>
+        <li>Посты для Telegram, VK, LinkedIn</li>
+        <li>SEO-статьи и тексты для рассылок</li>
+        <li>Описания товаров для магазина</li>
+      </ul>
+    </div>
+    <div class="card featured">
+      <h3>Бизнес-аналитик 24/7</h3>
+      <p class="who">Стартапы и интернет-магазины</p>
+      <div class="price">$99 <small>/ месяц</small></div>
+      <ul>
+        <li>Всё из тарифа «Контент-автопилот»</li>
+        <li>Мониторинг новостей вашей отрасли</li>
+        <li>Слежение за сайтами конкурентов</li>
+        <li>Ежедневные и еженедельные сводки в Telegram</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Настройка под ваш процесс</h3>
+      <p class="who">Агентства и компании</p>
+      <div class="price">$300–500 <small>разово</small></div>
+      <p class="note">+ $150 / месяц поддержка</p>
+      <ul>
+        <li>Обработка заявок и квалификация лидов</li>
+        <li>Сбор и разбор данных под вашу задачу</li>
+        <li>Подключение к вашим каналам и таблицам</li>
+      </ul>
+    </div>
+  </div>
+  <p class="note">Первые 3 дня — бесплатно, чтобы вы увидели результат до оплаты.</p>
+</section>
+
+<section>
+  <h2>Пример работы</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Контент-план (фрагмент)</h3>
+      <p class="who">Задача: кофейня у дома, Telegram-канал, 3 поста в неделю</p>
+      <div class="sample">Пн — «Почему утренний кофе вкуснее у нас»: как мы выбираем зёрна.
+Ср — Опрос: какой десерт добавить в меню?
+Пт — Скидка выходного дня и фото новой витрины.
+Пн — История бариста: как Аня выиграла городской конкурс латте-арта.</div>
+    </div>
+    <div class="card">
+      <h3>Готовый пост</h3>
+      <p class="who">Задача: магазин спортивного питания</p>
+      <div class="sample">Протеин вечером: да или нет?
+
+Короткий ответ — да, если вы тренируетесь и не добираете белка за день. Медленный казеин перед сном помогает мышцам восстанавливаться ночью.
+
+Главное — смотрите на дневную норму целиком, а не на одну порцию.</div>
+    </div>
+  </div>
+  <p class="note">Это демонстрационные примеры того, какие тексты делает система.</p>
+</section>
+
+<section>
+  <h2>Вопросы</h2>
+  <details><summary>Нужно ли что-то устанавливать?</summary>
+    <p>Нет. Всё работает в облаке, управлять можно с телефона.</p></details>
+  <details><summary>Что если нейросеть перестанет отвечать?</summary>
+    <p>Система сохраняет каждый шаг и передаёт задачу другой нейросети. Работа не теряется.</p></details>
+  <details><summary>Можно ли проверить до оплаты?</summary>
+    <p>Да, первые 3 дня бесплатно.</p></details>
+</section>
+
+<section id="contact">
+  <h2>Оставить заявку</h2>
+  <p>Напишите, какая у вас ниша и что нужно автоматизировать — подготовим бесплатный пример под вашу задачу.</p>
+  <a class="btn" id="contact-link" href="https://t.me/">Написать в Telegram</a>
+</section>
+
+</div>
+<footer><div class="wrap">ИИ-Автопилот · 2026</div></footer>
+</body>
+</html>
