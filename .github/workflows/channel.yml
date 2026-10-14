@@ -1,0 +1,68 @@
+# Демо-канал в Telegram (бизнес-план, неделя 2): ИИ сам пишет и публикует пост.
+# Работает бесплатно на GitHub по расписанию. Пока не заданы секреты
+# TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL, GROQ_API_KEY и переменная CHANNEL_TOPIC,
+# запуск просто пишет «канал ещё не настроен» и ничего не отправляет.
+# История постов хранится в ветке channel-state, чтобы темы не повторялись.
+name: channel
+
+on:
+  schedule:
+    - cron: "17 5,9,13,17 * * *"  # 4 поста в день (время UTC)
+  workflow_dispatch:
+
+concurrency:
+  group: channel
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Load history
+        run: |
+          mkdir -p data
+          if git ls-remote --exit-code --heads origin channel-state > /dev/null; then
+            git fetch --depth 1 origin channel-state
+            git show FETCH_HEAD:channel_history.json > data/channel_history.json
+          else
+            echo "истории ещё нет"
+          fi
+
+      - name: Post
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY }}
+          CHANNEL_TOPIC: ${{ vars.CHANNEL_TOPIC }}
+          CHANNEL_HISTORY: data/channel_history.json
+        run: python -m taskcore.channel
+
+      - name: Save history
+        run: |
+          [ -f data/channel_history.json ] || { echo "сохранять нечего"; exit 0; }
+          git config --global user.name "channel-bot"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          state="$RUNNER_TEMP/state"
+          if git ls-remote --exit-code --heads origin channel-state > /dev/null; then
+            git fetch --depth 1 origin channel-state
+            git worktree add -B channel-state "$state" FETCH_HEAD
+          else
+            git worktree add --detach "$state"
+            git -C "$state" checkout --orphan channel-state
+            git -C "$state" rm -rfq .
+          fi
+          cp data/channel_history.json "$state/channel_history.json"
+          git -C "$state" add channel_history.json
+          git -C "$state" diff --cached --quiet && { echo "история не изменилась"; exit 0; }
+          git -C "$state" commit -q -m "channel: run ${{ github.run_id }}"
+          git -C "$state" push origin channel-state
