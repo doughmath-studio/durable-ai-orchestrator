@@ -1,0 +1,33 @@
+# PROFIT ENGINE — Cloudflare Workers (Free plan compatible).
+name = "profit-engine"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+# Every 6 hours (UTC).
+[triggers]
+crons = ["0 */6 * * *"]
+
+# Replace database_id with the id printed by:  npx wrangler d1 create profit-engine
+[[d1_databases]]
+binding = "DB"
+database_name = "profit-engine"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# Non-secret settings. Secrets (RUN_TOKEN, READ_TOKEN, OMNIROUTE_API_KEY, TELEGRAM_BOT_TOKEN) are set
+# with `npx wrangler secret put NAME` and never stored here.
+[vars]
+FEEDS = "[]"                # JSON array of extra https RSS/Atom URLs you have checked yourself
+AI_ENABLED = "false"        # paid/external AI is OFF by default
+OMNIROUTE_BASE_URL = ""     # e.g. https://omniroute.example.com  (must be public HTTPS, not localhost)
+OMNIROUTE_MODEL = ""        # e.g. a free combo name from your OmniRoute dashboard
+AI_MAX_CALLS_PER_RUN = "3"
+MAX_SOURCES_PER_RUN = "8"
+MAX_ITEMS_PER_SOURCE = "25"
+MAX_ITEM_AGE_DAYS = "45"
+READY_SCORE_THRESHOLD = "55"
+TED_QUERY = ""              # empty = default query (IT/software/business-services CPV, last 3 days)
+
+[observability]
+enabled = true

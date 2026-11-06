@@ -1,0 +1,21 @@
+{
+  "name": "profit-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Opportunity mining MVP on Cloudflare Workers + D1",
+  "scripts": {
+    "test": "node --test --disable-warning=ExperimentalWarning test/*.test.js",
+    "check": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "db:migrate:local": "wrangler d1 migrations apply profit-engine --local",
+    "db:migrate:remote": "wrangler d1 migrations apply profit-engine --remote",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "devDependencies": {
+    "wrangler": "4.158.0"
+  }
+}
