@@ -1,3 +1,5 @@
+> **PROFIT ENGINE** (поиск коммерческих возможностей на Cloudflare Workers + D1) — в папке [`profit-engine/`](profit-engine/README.md).
+
 # future-core — Durable Task Core (этапы A и B)
 
 Надёжное ядро задач для будущей системы из нескольких ИИ. Хранит задачи в одном файле
